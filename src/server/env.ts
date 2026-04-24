@@ -56,6 +56,15 @@ const EnvSchema = z.object({
 
 export type Env = z.infer<typeof EnvSchema>;
 
+/**
+ * Set `SKIP_ENV_VALIDATION=true` in the build environment to bypass strict
+ * validation during `astro build` prerendering on CI/hosts (Netlify, Vercel,
+ * etc.) where runtime secrets aren't injected during the build phase. At
+ * actual server start (NODE_ENV=production without the skip flag), we still
+ * fail fast on missing/invalid env.
+ */
+const SKIP = process.env.SKIP_ENV_VALIDATION === 'true' || process.env.SKIP_ENV_VALIDATION === '1';
+
 function load(): Env {
   const parsed = EnvSchema.safeParse(process.env);
   if (!parsed.success) {
@@ -64,6 +73,18 @@ function load(): Env {
     for (const issue of parsed.error.issues) {
       // eslint-disable-next-line no-console
       console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+    }
+    if (SKIP) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '⚠ SKIP_ENV_VALIDATION is set — returning a stub env. This is only safe during build/prerender.',
+      );
+      // Generate a valid-looking stub so the schema types still hold. The real
+      // server will crash at runtime if these aren't set to real values.
+      return EnvSchema.parse({
+        APP_SECRET: 'build-time-placeholder-'.padEnd(48, 'x'),
+        ...process.env,
+      });
     }
     process.exit(1);
   }
