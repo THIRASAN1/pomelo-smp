@@ -1,0 +1,75 @@
+import { z } from 'zod';
+
+/**
+ * Fail-fast environment validation.
+ * Any mis-configuration crashes the server on boot instead of at runtime.
+ */
+const EnvSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  PORT: z.coerce.number().int().positive().default(4321),
+  HOST: z.string().default('0.0.0.0'),
+  LOG_LEVEL: z
+    .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
+    .default('info'),
+
+  ALLOWED_ORIGINS: z
+    .string()
+    .default('http://localhost:4321')
+    .transform((s) =>
+      s
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean),
+    ),
+
+  APP_SECRET: z
+    .string()
+    .min(32, 'APP_SECRET must be at least 32 characters. Generate one with `node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"`.'),
+
+  DATABASE_URL: z.string().default('file:./data/pomelo.db'),
+
+  // Admin panel — if either is missing the /admin/* routes are disabled.
+  ADMIN_USERNAME: z
+    .string()
+    .min(1)
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  ADMIN_PASSWORD_HASH: z
+    .string()
+    .regex(/^scrypt:[0-9a-f]{32}:[0-9a-f]{128}$/, 'ADMIN_PASSWORD_HASH must be generated via `npm run admin:hash <password>`')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  SESSION_TTL_HOURS: z.coerce.number().int().positive().default(24),
+
+  MC_HOST: z.string().default('play.pomelosmp.net'),
+  MC_PORT: z.coerce.number().int().positive().default(25565),
+
+  DISCORD_WEBHOOK_URL: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+
+  RATE_LIMIT_WHITELIST_PER_HOUR: z.coerce.number().int().positive().default(3),
+  RATE_LIMIT_API_PER_MINUTE: z.coerce.number().int().positive().default(60),
+});
+
+export type Env = z.infer<typeof EnvSchema>;
+
+function load(): Env {
+  const parsed = EnvSchema.safeParse(process.env);
+  if (!parsed.success) {
+    // eslint-disable-next-line no-console
+    console.error('✖ Invalid environment variables:');
+    for (const issue of parsed.error.issues) {
+      // eslint-disable-next-line no-console
+      console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+    }
+    process.exit(1);
+  }
+  return parsed.data;
+}
+
+export const env = load();
+export const isProd = env.NODE_ENV === 'production';
+export const isDev = env.NODE_ENV === 'development';

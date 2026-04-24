@@ -1,0 +1,46 @@
+# docker-compose for PomeloSMP. One-command local/prod deploy:
+#   docker compose up -d --build
+#
+# Requires a real .env (cp .env.example .env and fill in APP_SECRET + ADMIN_* at minimum).
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # You can bump this to 24 when it's LTS; 22 is current LTS as of 2024.
+        NODE_VERSION: "22"
+    image: pomelo-smp:latest
+    container_name: pomelo-smp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "4321"
+      DATABASE_URL: file:/app/data/pomelo.db
+    ports:
+      - "4321:4321"
+    volumes:
+      - pomelo-data:/app/data
+    # The Dockerfile already declares HEALTHCHECK; compose surfaces it in `docker ps`.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4321/api/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    # Minimal resource caps so a rogue spike doesn't nuke the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  pomelo-data:
+    name: pomelo-smp-data

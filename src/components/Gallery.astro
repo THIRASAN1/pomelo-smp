@@ -1,0 +1,113 @@
+---
+// Using inline SVG illustrations so the site works offline (no external images).
+// Each "build" uses blocky shapes in the pomelo palette to evoke a Minecraft feel.
+const builds = [
+  {
+    title: 'Pomelo Town',
+    author: '@meena',
+    tag: 'ชุมชน',
+  },
+  {
+    title: 'Skyloft เรือเหาะ',
+    author: '@kaii',
+    tag: 'แฟนตาซี',
+  },
+  {
+    title: 'Terracotta Market',
+    author: '@pim',
+    tag: 'มาร์เก็ต',
+  },
+  {
+    title: 'Orchard Hills',
+    author: '@non',
+    tag: 'ฟาร์ม',
+  },
+];
+
+const swatches = [
+  ['#FFE4C8', '#FDBA74', '#F97316', '#9A3412'],
+  ['#E8F0E1', '#C6DDB9', '#7BAE63', '#487235'],
+  ['#FFE4E6', '#FDA4AF', '#F43F5E', '#9F1239'],
+  ['#FDFBF7', '#F1E9D6', '#FDBA74', '#C2410C'],
+];
+---
+
+<section id="gallery" class="section">
+  <div class="container-app">
+    <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+      <div class="max-w-xl">
+        <p class="eyebrow">ผลงานชาวบ้าน</p>
+        <h2 class="mt-3 text-balance text-4xl font-bold leading-tight sm:text-5xl">
+          บ้านสวย ๆ จาก<span class="text-pomelo-600">ชาวสวนส้มโอ</span>
+        </h2>
+      </div>
+      <a href="#" class="btn-outline">
+        ดูทั้งหมด
+        <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 10h12m0 0-4-4m4 4-4 4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        builds.map((b, i) => {
+          const [c1, c2, c3, c4] = swatches[i % swatches.length];
+          return (
+            <figure class="group overflow-hidden rounded-2xl border border-ink-900/5 bg-white/70 shadow-soft backdrop-blur transition hover:-translate-y-1 hover:shadow-glow">
+              <div class="relative aspect-[4/5] overflow-hidden">
+                <svg
+                  viewBox="0 0 200 250"
+                  class="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]"
+                  aria-hidden="true"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <!-- sky -->
+                  <rect width="200" height="250" fill={c1} />
+                  <!-- sun -->
+                  <circle cx="160" cy="50" r="22" fill={c3} fill-opacity="0.55" />
+                  <!-- distant hills -->
+                  <path d="M0 170 L40 150 L80 165 L130 140 L200 170 L200 250 L0 250 Z" fill={c2} />
+                  <!-- blocky ground -->
+                  <g fill={c2}>
+                    {Array.from({ length: 10 }).map((_, x) => (
+                      <rect x={x * 20} y={200} width="20" height="50" fill={c2} fill-opacity={x % 2 === 0 ? 1 : 0.85} />
+                    ))}
+                  </g>
+                  <!-- tree -->
+                  <rect x="26" y="158" width="8" height="36" fill={c4} />
+                  <rect x="14" y="134" width="32" height="28" fill={c3} />
+                  <rect x="20" y="128" width="20" height="10" fill={c3} />
+                  <!-- pixel house -->
+                  <g>
+                    <rect x="86" y="140" width="70" height="58" fill="#FDFBF7" />
+                    <rect x="86" y="140" width="70" height="10" fill={c4} />
+                    <polygon points="80,140 162,140 121,108" fill={c3} />
+                    <rect x="112" y="168" width="18" height="30" fill={c4} />
+                    <rect x="94" y="156" width="14" height="14" fill={c1} />
+                    <rect x="134" y="156" width="14" height="14" fill={c1} />
+                  </g>
+                  <!-- clouds -->
+                  <g fill="#FFFFFF" fill-opacity="0.7">
+                    <rect x="20" y="40" width="40" height="8" />
+                    <rect x="30" y="32" width="24" height="8" />
+                  </g>
+                </svg>
+                <span class="absolute left-3 top-3 chip">{b.tag}</span>
+              </div>
+              <figcaption class="flex items-center justify-between p-4">
+                <div>
+                  <p class="font-display text-sm font-semibold">{b.title}</p>
+                  <p class="text-xs text-ink-500">สร้างโดย {b.author}</p>
+                </div>
+                <svg class="h-4 w-4 text-ink-300 transition group-hover:translate-x-1 group-hover:text-pomelo-600" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 10h12m0 0-4-4m4 4-4 4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </figcaption>
+            </figure>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

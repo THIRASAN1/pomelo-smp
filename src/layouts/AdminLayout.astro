@@ -1,0 +1,301 @@
+---
+import '../styles/global.css';
+import Logo from '../components/Logo.astro';
+import { getCurrentAdmin } from '../server/lib/admin-auth';
+
+interface Props {
+  title: string;
+  /** Set to false on the login page (no session yet). */
+  protected?: boolean;
+}
+
+const { title, protected: isProtected = true } = Astro.props;
+
+const session = isProtected ? await getCurrentAdmin(Astro) : null;
+const active = Astro.url.pathname;
+const isActive = (path: string) => active === path || active.startsWith(path + '/');
+---
+
+<!doctype html>
+<html lang="th" class="h-full bg-ink-900 text-ink-100">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · PomeloSMP Admin</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class="admin-body min-h-full antialiased font-sans">
+    {
+      isProtected && session ? (
+        <div class="min-h-screen flex flex-col md:flex-row">
+          {/* ─── Mobile top bar (md:hidden) ─────────────────────────────── */}
+          <header class="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-ink-900/80 px-4 backdrop-blur md:hidden">
+            <a href="/admin" class="flex items-center gap-2">
+              <Logo class="h-8 w-8" />
+              <span class="font-display text-sm font-bold">PomeloSMP <span class="text-pomelo-400">admin</span></span>
+            </a>
+            <button
+              type="button"
+              data-drawer-toggle
+              aria-label="เปิดเมนู"
+              aria-expanded="false"
+              aria-controls="admin-drawer"
+              class="rounded-lg border border-white/10 p-2 text-ink-200 transition hover:bg-white/5"
+            >
+              <svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round" />
+              </svg>
+            </button>
+          </header>
+
+          {/* ─── Drawer overlay (mobile) ─────────────────────────────── */}
+          <div
+            data-drawer-backdrop
+            class="fixed inset-0 z-40 hidden bg-ink-900/70 backdrop-blur-sm md:hidden"
+            aria-hidden="true"
+          />
+
+          {/* ─── Sidebar (fixed drawer on mobile, static on desktop) ── */}
+          <aside
+            id="admin-drawer"
+            data-drawer
+            class="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 -translate-x-full flex-col border-r border-white/10 bg-ink-900/95 backdrop-blur transition-transform duration-200 md:static md:translate-x-0 md:bg-ink-900/60"
+            aria-label="เมนูหลัก"
+          >
+            <div class="flex items-center justify-between gap-2 border-b border-white/10 px-5 py-4">
+              <a href="/admin" class="flex items-center gap-2">
+                <Logo class="h-9 w-9" />
+                <div>
+                  <p class="font-display text-sm font-bold leading-none">PomeloSMP</p>
+                  <p class="mt-1 text-[10px] uppercase tracking-widest text-pomelo-400">admin</p>
+                </div>
+              </a>
+              {/* Close button shown only on mobile */}
+              <button
+                type="button"
+                data-drawer-close
+                aria-label="ปิดเมนู"
+                class="rounded-lg border border-white/10 p-1.5 text-ink-300 transition hover:bg-white/5 md:hidden"
+              >
+                <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <nav class="flex-1 space-y-1 overflow-y-auto p-4 text-sm">
+              <a
+                href="/admin"
+                class={`flex items-center gap-3 rounded-lg px-3 py-2 transition ${isActive('/admin') && !isActive('/admin/applications') && !isActive('/admin/audit') ? 'bg-pomelo-500/15 text-pomelo-200' : 'text-ink-300 hover:bg-white/5 hover:text-white'}`}
+              >
+                <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 10l7-7 7 7v7a1 1 0 0 1-1 1h-4v-5H8v5H4a1 1 0 0 1-1-1v-7z" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Dashboard
+              </a>
+              <a
+                href="/admin/applications"
+                class={`flex items-center gap-3 rounded-lg px-3 py-2 transition ${isActive('/admin/applications') ? 'bg-pomelo-500/15 text-pomelo-200' : 'text-ink-300 hover:bg-white/5 hover:text-white'}`}
+              >
+                <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 3h10v14H5zM8 7h4M8 10h4M8 13h4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                ใบสมัคร Whitelist
+              </a>
+              <a
+                href="/admin/audit"
+                class={`flex items-center gap-3 rounded-lg px-3 py-2 transition ${isActive('/admin/audit') ? 'bg-pomelo-500/15 text-pomelo-200' : 'text-ink-300 hover:bg-white/5 hover:text-white'}`}
+              >
+                <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 4h12v12H4zM7 8h6M7 11h6M7 14h3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Audit log
+              </a>
+
+              <div class="pt-4 mt-4 border-t border-white/10">
+                <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-ink-500">ลิงก์ด่วน</p>
+                <a href="/" class="flex items-center gap-3 rounded-lg px-3 py-2 text-ink-400 transition hover:bg-white/5 hover:text-white">
+                  <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M7 13l6-6m0 0H8m5 0v5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  เว็บหลัก
+                </a>
+                <a href="/api/health" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg px-3 py-2 text-ink-400 transition hover:bg-white/5 hover:text-white">
+                  <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M3 10h4l2-5 2 10 2-5h4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  API health
+                </a>
+              </div>
+            </nav>
+
+            <div class="border-t border-white/10 p-4 text-xs text-ink-400">
+              <p class="mb-2 truncate">
+                เข้าสู่ระบบเป็น <span class="font-semibold text-ink-100">{session.username}</span>
+              </p>
+              <button
+                data-logout
+                class="w-full rounded-lg border border-white/10 px-3 py-2 text-left text-ink-200 transition hover:bg-white/5 hover:text-white"
+              >
+                ออกจากระบบ →
+              </button>
+            </div>
+          </aside>
+
+          <main class="flex-1 overflow-x-hidden">
+            <slot />
+          </main>
+        </div>
+      ) : (
+        <main class="min-h-screen">
+          <slot />
+        </main>
+      )
+    }
+
+    <script>
+      // ─── Drawer toggling (mobile) ──────────────────────────────────────
+      const drawer = document.querySelector<HTMLElement>('[data-drawer]');
+      const backdrop = document.querySelector<HTMLElement>('[data-drawer-backdrop]');
+      const toggle = document.querySelector<HTMLButtonElement>('[data-drawer-toggle]');
+      const closeBtn = document.querySelector<HTMLButtonElement>('[data-drawer-close]');
+
+      function openDrawer() {
+        if (!drawer || !backdrop || !toggle) return;
+        drawer.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeDrawer() {
+        if (!drawer || !backdrop || !toggle) return;
+        drawer.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+
+      toggle?.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        expanded ? closeDrawer() : openDrawer();
+      });
+      closeBtn?.addEventListener('click', closeDrawer);
+      backdrop?.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer();
+      });
+
+      // ─── Logout ───────────────────────────────────────────────────────
+      const logoutBtn = document.querySelector<HTMLButtonElement>('[data-logout]');
+      logoutBtn?.addEventListener('click', async () => {
+        logoutBtn.disabled = true;
+        try {
+          await fetch('/api/admin/logout', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+          });
+        } finally {
+          window.location.href = '/admin/login';
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* Override the public-site body theme (cream bg + orange/pink gradient)
+     with the dark admin palette. `body.admin-body` > `body` specificity. */
+  body.admin-body {
+    background-color: #1B1410; /* ink-900 */
+    background-image: none;
+    color: #F1E9D6;            /* cream-200, warm light text on dark */
+  }
+  body.admin-body ::selection {
+    background: rgb(249 115 22 / 0.5);
+    color: white;
+  }
+
+  .admin-card {
+    border-radius: 1rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    background: rgb(255 255 255 / 0.03);
+    backdrop-filter: blur(8px);
+  }
+  .admin-input {
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    color: rgb(243 244 246);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .admin-input:focus {
+    border-color: rgb(249 115 22);
+    box-shadow: 0 0 0 2px rgb(249 115 22 / 0.25);
+  }
+  .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .admin-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .admin-btn-primary {
+    background: rgb(249 115 22);
+    color: white;
+  }
+  .admin-btn-primary:hover:not(:disabled) {
+    background: rgb(234 88 12);
+  }
+  .admin-btn-danger {
+    background: rgb(244 63 94);
+    color: white;
+  }
+  .admin-btn-danger:hover:not(:disabled) {
+    background: rgb(225 29 72);
+  }
+  .admin-btn-ghost {
+    border-color: rgb(255 255 255 / 0.1);
+    color: rgb(209 213 219);
+    background: transparent;
+  }
+  .admin-btn-ghost:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.05);
+    color: white;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-pending {
+    background: rgb(234 179 8 / 0.15);
+    color: rgb(250 204 21);
+  }
+  .badge-approved {
+    background: rgb(34 197 94 / 0.15);
+    color: rgb(74 222 128);
+  }
+  .badge-rejected {
+    background: rgb(244 63 94 / 0.15);
+    color: rgb(251 113 133);
+  }
+</style>

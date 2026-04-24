@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777061262309,
+      "tag": "0000_bright_warhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777062286524,
+      "tag": "0001_chunky_hellion",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777063469433,
+      "tag": "0002_flashy_carnage",
+      "breakpoints": true
+    }
+  ]
+}

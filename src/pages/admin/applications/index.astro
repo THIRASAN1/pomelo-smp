@@ -1,0 +1,141 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../../server/lib/admin-auth';
+import { listAdminApplications } from '../../../server/services/whitelist';
+import type { WhitelistApplication } from '../../../server/db/schema';
+
+export const prerender = false;
+
+try {
+  await requireAdmin(Astro);
+} catch {
+  return Astro.redirect('/admin/login');
+}
+
+const url = Astro.url;
+const statusParam = url.searchParams.get('status');
+const validStatus: WhitelistApplication['status'][] = ['pending', 'approved', 'rejected'];
+const status = validStatus.includes(statusParam as any)
+  ? (statusParam as WhitelistApplication['status'])
+  : undefined;
+const page = Math.max(1, Number(url.searchParams.get('page') ?? '1') || 1);
+const pageSize = 25;
+
+const result = await listAdminApplications({ status, page, pageSize });
+
+const statusLabel: Record<string, { label: string; cls: string }> = {
+  pending: { label: 'รอพิจารณา', cls: 'badge-pending' },
+  approved: { label: 'อนุมัติ', cls: 'badge-approved' },
+  rejected: { label: 'ปฏิเสธ', cls: 'badge-rejected' },
+};
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+
+const tabs = [
+  { key: undefined, label: 'ทั้งหมด' },
+  { key: 'pending', label: 'รอพิจารณา' },
+  { key: 'approved', label: 'อนุมัติ' },
+  { key: 'rejected', label: 'ปฏิเสธ' },
+] as const;
+
+const tabHref = (k?: string) => `/admin/applications${k ? `?status=${k}` : ''}`;
+
+const pageHref = (p: number) => {
+  const params = new URLSearchParams(url.search);
+  params.set('page', String(p));
+  return `/admin/applications?${params.toString()}`;
+};
+---
+
+<AdminLayout title="ใบสมัคร Whitelist">
+  <div class="p-6 sm:p-10 max-w-6xl mx-auto space-y-6">
+    <header class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="font-display text-3xl font-bold text-white">ใบสมัคร Whitelist</h1>
+        <p class="mt-1 text-sm text-ink-400">ทั้งหมด {result.total} ใบสมัคร</p>
+      </div>
+    </header>
+
+    <!-- Filter tabs -->
+    <div class="flex flex-wrap gap-2">
+      {
+        tabs.map((t) => {
+          const isActive = (t.key ?? undefined) === (status ?? undefined);
+          return (
+            <a
+              href={tabHref(t.key)}
+              class={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${isActive ? 'bg-pomelo-500 text-white' : 'bg-white/5 text-ink-300 hover:bg-white/10 hover:text-white'}`}
+            >
+              {t.label}
+            </a>
+          );
+        })
+      }
+    </div>
+
+    <!-- Table -->
+    <div class="admin-card overflow-hidden">
+      {
+        result.items.length === 0 ? (
+          <p class="p-12 text-center text-sm text-ink-400">ไม่พบใบสมัครในหมวดนี้</p>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="border-b border-white/5 text-left text-xs uppercase tracking-wider text-ink-400">
+                <tr>
+                  <th class="px-5 py-3 font-medium">Minecraft</th>
+                  <th class="px-5 py-3 font-medium">Discord</th>
+                  <th class="px-5 py-3 font-medium">อายุ</th>
+                  <th class="px-5 py-3 font-medium">สถานะ</th>
+                  <th class="px-5 py-3 font-medium">ส่งเมื่อ</th>
+                  <th class="px-5 py-3 font-medium" />
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                {result.items.map((app) => (
+                  <tr class="transition hover:bg-white/5">
+                    <td class="px-5 py-3 font-mono text-white">{app.minecraftUsername}</td>
+                    <td class="px-5 py-3 font-mono text-ink-300">{app.discordHandle}</td>
+                    <td class="px-5 py-3 text-ink-300">{app.age}</td>
+                    <td class="px-5 py-3">
+                      <span class={`badge ${statusLabel[app.status].cls}`}>{statusLabel[app.status].label}</span>
+                    </td>
+                    <td class="px-5 py-3 text-ink-400">{fmtDate(app.createdAt)}</td>
+                    <td class="px-5 py-3 text-right">
+                      <a
+                        href={`/admin/applications/${app.id}`}
+                        class="text-xs font-semibold text-pomelo-300 hover:text-pomelo-200"
+                      >
+                        ดู →
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Pagination -->
+    {
+      result.totalPages > 1 && (
+        <nav class="flex items-center justify-between text-sm">
+          <p class="text-ink-400">
+            หน้า {result.page} / {result.totalPages}
+          </p>
+          <div class="flex gap-2">
+            {result.page > 1 && (
+              <a href={pageHref(result.page - 1)} class="admin-btn admin-btn-ghost">← ก่อนหน้า</a>
+            )}
+            {result.page < result.totalPages && (
+              <a href={pageHref(result.page + 1)} class="admin-btn admin-btn-ghost">ถัดไป →</a>
+            )}
+          </div>
+        </nav>
+      )
+    }
+  </div>
+</AdminLayout>

@@ -1,0 +1,38 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+
+<span class={`inline-flex items-center gap-2 ${className}`}>
+  <svg
+    viewBox="0 0 32 32"
+    aria-hidden="true"
+    class="h-7 w-7"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="pomelo-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FDBA74" />
+        <stop offset="100%" stop-color="#F97316" />
+      </linearGradient>
+    </defs>
+    <!-- leaf -->
+    <path
+      d="M16 4c4 0 6-2 8-2-0.5 3-2 5-5 6"
+      fill="none"
+      stroke="#5E9448"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <!-- pomelo body -->
+    <circle cx="15" cy="19" r="10" fill="url(#pomelo-grad)" />
+    <!-- highlight -->
+    <circle cx="11" cy="15" r="2.4" fill="#FFF7ED" fill-opacity="0.55" />
+  </svg>
+  <span class="font-display text-[17px] font-semibold tracking-tight">
+    Pomelo<span class="text-pomelo-600">SMP</span>
+  </span>
+</span>

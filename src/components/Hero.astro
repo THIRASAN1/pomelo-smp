@@ -1,0 +1,171 @@
+---
+const serverIp = 'play.pomelosmp.net';
+const version = '1.21.x · Java Edition';
+---
+
+<section class="relative overflow-hidden">
+  <!-- soft decorative shapes -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
+    <div class="absolute -left-24 top-24 h-72 w-72 rounded-full bg-pomelo-200/50 blur-3xl"></div>
+    <div class="absolute right-0 top-10 h-80 w-80 rounded-full bg-flesh-200/40 blur-3xl"></div>
+    <div class="absolute inset-0 bg-grain opacity-40 mix-blend-multiply"></div>
+  </div>
+
+  <div class="container-app pt-16 pb-24 sm:pt-24 sm:pb-32">
+    <div class="flex flex-col items-center text-center">
+      <span class="chip">
+        <span class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf-400 opacity-70"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-leaf-500"></span>
+        </span>
+        เซิร์ฟเวอร์ออนไลน์ · Season 3
+      </span>
+
+      <h1 class="mt-6 text-balance font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+        สร้างเรื่องราวของคุณ<br />
+        บน <span class="relative inline-block">
+          <span class="bg-gradient-to-br from-pomelo-500 to-flesh-500 bg-clip-text text-transparent">PomeloSMP</span>
+          <svg
+            class="absolute -bottom-2 left-0 w-full text-pomelo-300/70"
+            viewBox="0 0 200 10"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 7 C 50 1, 150 1, 198 7"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+      </h1>
+
+      <p class="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-ink-500 sm:text-lg">
+        เซิร์ฟเวอร์ Minecraft SMP สไตล์มินิมอล เน้นสังคมเล็ก ๆ เล่นแบบ Vanilla+
+        ปลอดภัย ไม่ Pay-to-Win มีระบบเศรษฐกิจเบา ๆ และอีเวนต์สนุก ๆ ทุกสุดสัปดาห์
+      </p>
+
+      <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+        <!-- IP copy -->
+        <div
+          class="group flex items-center gap-2 rounded-full border border-ink-900/10 bg-white/80 p-1.5 pl-4 shadow-soft backdrop-blur"
+        >
+          <span class="text-xs font-medium uppercase tracking-wider text-ink-500">IP</span>
+          <code id="server-ip" class="font-mono text-sm text-ink-900">{serverIp}</code>
+          <button
+            type="button"
+            data-copy-ip={serverIp}
+            class="btn-primary !px-3 !py-1.5 !text-xs"
+            aria-label="คัดลอก IP เซิร์ฟเวอร์"
+          >
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="7" y="7" width="10" height="10" rx="2" stroke-linejoin="round" />
+              <path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span data-copy-label>คัดลอก</span>
+          </button>
+        </div>
+
+        <a href="#apply" class="btn-primary">
+          ขอเข้าเล่น
+          <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 10h12m0 0-4-4m4 4-4 4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+
+        <a
+          href="https://discord.gg/pomelosmp"
+          target="_blank"
+          rel="noopener"
+          class="btn-outline"
+        >
+          เข้าร่วม Discord
+          <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M7 13l6-6m0 0H8m5 0v5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- meta bar — values are hydrated from /api/status on the client -->
+      <dl class="mt-14 grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4" data-stats>
+        <div class="card text-left">
+          <dt class="text-xs font-medium uppercase tracking-wider text-ink-500">ผู้เล่น</dt>
+          <dd class="mt-1 font-display text-2xl font-bold">
+            <span data-stat="players-online">—</span><span class="text-ink-300 text-base font-normal"> / <span data-stat="players-max">—</span></span>
+          </dd>
+        </div>
+        <div class="card text-left">
+          <dt class="text-xs font-medium uppercase tracking-wider text-ink-500">สถานะ</dt>
+          <dd class="mt-1 font-display text-2xl font-bold"><span data-stat="online">—</span></dd>
+        </div>
+        <div class="card text-left">
+          <dt class="text-xs font-medium uppercase tracking-wider text-ink-500">เวอร์ชัน</dt>
+          <dd class="mt-1 font-display text-lg font-semibold"><span data-stat="version">{version}</span></dd>
+        </div>
+        <div class="card text-left">
+          <dt class="text-xs font-medium uppercase tracking-wider text-ink-500">โหมด</dt>
+          <dd class="mt-1 font-display text-lg font-semibold">Survival · Vanilla+</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ─── IP copy-to-clipboard ──────────────────────────────────────────────
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-copy-ip]');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const ip = btn.getAttribute('data-copy-ip') ?? '';
+      const label = btn.querySelector<HTMLElement>('[data-copy-label]');
+      try {
+        await navigator.clipboard.writeText(ip);
+        if (label) {
+          const prev = label.textContent;
+          label.textContent = 'คัดลอกแล้ว!';
+          setTimeout(() => (label.textContent = prev), 1500);
+        }
+      } catch (_) {
+        if (label) label.textContent = 'คัดลอกไม่สำเร็จ';
+      }
+    });
+  });
+
+  // ─── Live server status from /api/status ───────────────────────────────
+  type StatusEnvelope = {
+    data: {
+      online: boolean;
+      version?: string;
+      players: { online: number; max: number };
+    };
+  };
+
+  const setStat = (name: string, value: string) => {
+    document.querySelectorAll<HTMLElement>(`[data-stat="${name}"]`).forEach((el) => {
+      el.textContent = value;
+    });
+  };
+
+  async function refreshStatus(): Promise<void> {
+    try {
+      const res = await fetch('/api/status', { headers: { accept: 'application/json' } });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const envelope = (await res.json()) as StatusEnvelope;
+      const { online, version, players } = envelope.data;
+      setStat('players-online', String(players.online));
+      setStat('players-max', String(players.max || '—'));
+      setStat('online', online ? 'ออนไลน์' : 'ออฟไลน์');
+      if (version) setStat('version', version);
+    } catch (err) {
+      console.warn('status fetch failed', err);
+      setStat('online', 'ไม่ทราบสถานะ');
+    }
+  }
+
+  refreshStatus();
+  // Refresh every 45s while the tab is visible.
+  setInterval(() => {
+    if (document.visibilityState === 'visible') refreshStatus();
+  }, 45_000);
+</script>

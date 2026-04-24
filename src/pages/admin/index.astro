@@ -1,0 +1,118 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../server/lib/admin-auth';
+import { getApplicationStats, listRecentApplications } from '../../server/services/whitelist';
+import { getServerStatus } from '../../server/services/minecraft';
+
+export const prerender = false;
+
+try {
+  await requireAdmin(Astro);
+} catch {
+  return Astro.redirect('/admin/login');
+}
+
+const [stats, recent, mcStatus] = await Promise.all([
+  getApplicationStats(),
+  listRecentApplications(5),
+  getServerStatus(),
+]);
+
+const statusLabel: Record<string, { label: string; cls: string }> = {
+  pending: { label: 'รอพิจารณา', cls: 'badge-pending' },
+  approved: { label: 'อนุมัติ', cls: 'badge-approved' },
+  rejected: { label: 'ปฏิเสธ', cls: 'badge-rejected' },
+};
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+---
+
+<AdminLayout title="Dashboard">
+  <div class="p-6 sm:p-10 max-w-6xl mx-auto space-y-8">
+    <header>
+      <h1 class="font-display text-3xl font-bold text-white">Dashboard</h1>
+      <p class="mt-1 text-sm text-ink-400">ภาพรวมของเซิร์ฟเวอร์ PomeloSMP</p>
+    </header>
+
+    <!-- Stat cards -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="admin-card p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-ink-400">รอพิจารณา</p>
+        <p class="mt-1 font-display text-3xl font-bold text-yellow-300">{stats.pending}</p>
+      </div>
+      <div class="admin-card p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-ink-400">อนุมัติแล้ว</p>
+        <p class="mt-1 font-display text-3xl font-bold text-green-300">{stats.approved}</p>
+      </div>
+      <div class="admin-card p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-ink-400">ปฏิเสธ</p>
+        <p class="mt-1 font-display text-3xl font-bold text-rose-300">{stats.rejected}</p>
+      </div>
+      <div class="admin-card p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-ink-400">ใน 24 ชม.</p>
+        <p class="mt-1 font-display text-3xl font-bold text-pomelo-300">{stats.last24h}</p>
+      </div>
+    </div>
+
+    <!-- Server status -->
+    <div class="admin-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-ink-400">Minecraft Server</p>
+          <p class="mt-1 font-mono text-sm text-ink-200">{mcStatus.host}:{mcStatus.port}</p>
+        </div>
+        <span class={`badge ${mcStatus.online ? 'badge-approved' : 'badge-rejected'}`}>
+          {mcStatus.online ? '● Online' : '● Offline'}
+        </span>
+      </div>
+      {
+        mcStatus.online && (
+          <dl class="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <dt class="text-xs text-ink-400">ผู้เล่น</dt>
+              <dd class="mt-0.5 font-display font-semibold text-white">
+                {mcStatus.players.online} / {mcStatus.players.max}
+              </dd>
+            </div>
+            {mcStatus.version && (
+              <div>
+                <dt class="text-xs text-ink-400">เวอร์ชัน</dt>
+                <dd class="mt-0.5 font-display font-semibold text-white">{mcStatus.version}</dd>
+              </div>
+            )}
+            <div>
+              <dt class="text-xs text-ink-400">อัปเดตล่าสุด</dt>
+              <dd class="mt-0.5 text-ink-200">{fmtDate(mcStatus.fetchedAt)}</dd>
+            </div>
+          </dl>
+        )
+      }
+    </div>
+
+    <!-- Recent submissions -->
+    <div class="admin-card overflow-hidden">
+      <div class="flex items-center justify-between border-b border-white/5 px-5 py-4">
+        <h2 class="font-display text-sm font-semibold text-white">ใบสมัครล่าสุด</h2>
+        <a href="/admin/applications" class="text-xs text-pomelo-300 hover:text-pomelo-200">ดูทั้งหมด →</a>
+      </div>
+      {
+        recent.length === 0 ? (
+          <p class="p-8 text-center text-sm text-ink-400">ยังไม่มีใบสมัคร</p>
+        ) : (
+          <ul class="divide-y divide-white/5">
+            {recent.map((app) => (
+              <li class="flex items-center justify-between px-5 py-3 text-sm hover:bg-white/2.5">
+                <a href={`/admin/applications/${app.id}`} class="flex min-w-0 flex-1 items-center gap-3">
+                  <span class="font-mono text-sm text-white">{app.minecraftUsername}</span>
+                  <span class={`badge ${statusLabel[app.status].cls}`}>{statusLabel[app.status].label}</span>
+                </a>
+                <span class="ml-3 shrink-0 text-xs text-ink-400">{fmtDate(app.createdAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</AdminLayout>

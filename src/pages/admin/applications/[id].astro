@@ -1,0 +1,145 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../../server/lib/admin-auth';
+import { getAdminApplication } from '../../../server/services/whitelist';
+
+export const prerender = false;
+
+try {
+  await requireAdmin(Astro);
+} catch {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+const app = id ? await getAdminApplication(id) : null;
+if (!app) {
+  return new Response('Not found', { status: 404 });
+}
+
+const statusLabel: Record<string, { label: string; cls: string }> = {
+  pending: { label: 'รอพิจารณา', cls: 'badge-pending' },
+  approved: { label: 'อนุมัติ', cls: 'badge-approved' },
+  rejected: { label: 'ปฏิเสธ', cls: 'badge-rejected' },
+};
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+---
+
+<AdminLayout title={`ใบสมัคร ${app.minecraftUsername}`}>
+  <div class="p-6 sm:p-10 max-w-3xl mx-auto space-y-6">
+    <a href="/admin/applications" class="text-xs text-pomelo-300 hover:text-pomelo-200">← กลับไปรายการ</a>
+
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="font-display text-3xl font-bold text-white">{app.minecraftUsername}</h1>
+          <span class={`badge ${statusLabel[app.status].cls}`}>{statusLabel[app.status].label}</span>
+        </div>
+        <p class="mt-1 font-mono text-xs text-ink-400">ID: {app.id}</p>
+      </div>
+    </header>
+
+    <dl class="admin-card grid gap-4 p-5 sm:grid-cols-2">
+      <div>
+        <dt class="text-xs font-medium uppercase tracking-wider text-ink-400">Discord handle</dt>
+        <dd class="mt-1 font-mono text-white">{app.discordHandle}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium uppercase tracking-wider text-ink-400">อายุ</dt>
+        <dd class="mt-1 font-display text-xl font-bold text-white">{app.age}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium uppercase tracking-wider text-ink-400">รู้จักจาก</dt>
+        <dd class="mt-1 text-ink-200">{app.referrer ?? '—'}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium uppercase tracking-wider text-ink-400">ส่งเมื่อ</dt>
+        <dd class="mt-1 text-ink-200">{fmtDate(app.createdAt)}</dd>
+      </div>
+    </dl>
+
+    <div class="admin-card p-5">
+      <p class="text-xs font-medium uppercase tracking-wider text-ink-400">เหตุผลที่อยากเข้าร่วม</p>
+      <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-100">{app.whyJoin}</p>
+    </div>
+
+    {
+      app.status === 'pending' ? (
+        <form id="review" class="admin-card space-y-4 p-5">
+          <div>
+            <label class="block">
+              <span class="text-xs font-medium uppercase tracking-wider text-ink-400">บันทึกการพิจารณา <span class="text-ink-500">(ไม่บังคับ)</span></span>
+              <textarea name="note" rows="3" maxlength="1000" class="admin-input mt-1.5" placeholder="ข้อความถึงผู้สมัคร / หมายเหตุภายใน..." />
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="admin-btn admin-btn-primary" data-action="approve" data-id={app.id}>
+              ✓ อนุมัติ
+            </button>
+            <button type="button" class="admin-btn admin-btn-danger" data-action="reject" data-id={app.id}>
+              ✕ ปฏิเสธ
+            </button>
+          </div>
+          <p id="review-msg" class="hidden rounded-lg border px-3 py-2 text-xs" role="alert" />
+        </form>
+      ) : (
+        <div class="admin-card p-5 space-y-2">
+          <p class="text-xs font-medium uppercase tracking-wider text-ink-400">ผลการพิจารณา</p>
+          <p class="text-sm text-ink-100">
+            <span class="font-semibold">{app.reviewedBy ?? '—'}</span> ตัดสินเมื่อ {app.reviewedAt ? fmtDate(app.reviewedAt) : '—'}
+          </p>
+          {app.reviewNote && (
+            <p class="mt-2 whitespace-pre-wrap rounded-lg bg-white/5 p-3 text-sm text-ink-100">{app.reviewNote}</p>
+          )}
+        </div>
+      )
+    }
+  </div>
+</AdminLayout>
+
+<script>
+  const msg = document.querySelector<HTMLElement>('#review-msg');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-action]');
+
+  function showMsg(kind: 'ok' | 'err', text: string) {
+    if (!msg) return;
+    msg.textContent = text;
+    msg.className =
+      kind === 'ok'
+        ? 'rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs text-green-300'
+        : 'rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300';
+    msg.classList.remove('hidden');
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (!action || !id) return;
+      const form = document.querySelector<HTMLFormElement>('#review');
+      const fd = form ? new FormData(form) : new FormData();
+
+      buttons.forEach((b) => (b.disabled = true));
+      try {
+        const res = await fetch(`/api/admin/applications/${id}/${action}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ note: String(fd.get('note') ?? '') }),
+        });
+        const body = await res.json().catch(() => null);
+        if (res.ok) {
+          showMsg('ok', `บันทึกการ${action === 'approve' ? 'อนุมัติ' : 'ปฏิเสธ'}แล้ว กำลังโหลดใหม่...`);
+          setTimeout(() => window.location.reload(), 700);
+        } else {
+          showMsg('err', body?.error?.message ?? 'ดำเนินการไม่สำเร็จ');
+          buttons.forEach((b) => (b.disabled = false));
+        }
+      } catch {
+        showMsg('err', 'เชื่อมต่อไม่ได้');
+        buttons.forEach((b) => (b.disabled = false));
+      }
+    });
+  });
+</script>

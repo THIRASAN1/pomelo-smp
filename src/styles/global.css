@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Sticky nav is 64 px tall — offset anchor jumps so section titles aren't hidden underneath. */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  body {
+    @apply bg-cream-50 text-ink-900 font-sans;
+    background-image:
+      radial-gradient(1200px 600px at 10% -10%, rgba(253, 186, 116, 0.18), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, rgba(251, 113, 133, 0.10), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-pomelo-200 text-pomelo-900;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-pomelo-500;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink-900 text-cream-50 hover:bg-pomelo-600 hover:shadow-glow;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-700 hover:text-ink-900 hover:bg-cream-100;
+  }
+
+  .btn-outline {
+    @apply btn border border-ink-900/10 bg-white/60 text-ink-900 backdrop-blur hover:border-pomelo-500/40 hover:bg-white;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-900/10 bg-white/70 px-3 py-1 text-xs font-medium text-ink-700 backdrop-blur;
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink-900/5 bg-white/70 p-6 shadow-soft backdrop-blur;
+  }
+
+  .section {
+    @apply py-20 sm:py-28;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-pomelo-600;
+  }
+
+  .divider-dot::before {
+    content: "";
+    @apply mx-3 inline-block h-1 w-1 rounded-full bg-ink-300 align-middle;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}

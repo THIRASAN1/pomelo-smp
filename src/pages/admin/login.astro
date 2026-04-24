@@ -1,0 +1,86 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getCurrentAdmin, isAdminEnabled } from '../../server/lib/admin-auth';
+
+export const prerender = false;
+
+if (!isAdminEnabled()) {
+  return new Response('Admin panel is not configured', { status: 404 });
+}
+
+// Already logged in? bounce to dashboard.
+const session = await getCurrentAdmin(Astro);
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<AdminLayout title="เข้าสู่ระบบ" protected={false}>
+  <div class="flex min-h-screen items-center justify-center p-6">
+    <form id="login" class="admin-card w-full max-w-sm space-y-5 p-8" novalidate>
+      <div class="text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-pomelo-500/20 text-2xl">🍊</div>
+        <h1 class="mt-4 font-display text-2xl font-bold text-white">PomeloSMP Admin</h1>
+        <p class="mt-1 text-sm text-ink-400">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
+      </div>
+
+      <div class="space-y-3">
+        <label class="block">
+          <span class="text-xs font-medium uppercase tracking-wider text-ink-400">ชื่อผู้ใช้</span>
+          <input type="text" name="username" required autocomplete="username" class="admin-input mt-1.5" />
+        </label>
+        <label class="block">
+          <span class="text-xs font-medium uppercase tracking-wider text-ink-400">รหัสผ่าน</span>
+          <input type="password" name="password" required autocomplete="current-password" class="admin-input mt-1.5" />
+        </label>
+      </div>
+
+      <button type="submit" class="admin-btn admin-btn-primary w-full justify-center" data-submit>
+        <span data-submit-label>เข้าสู่ระบบ</span>
+      </button>
+
+      <p id="login-error" class="hidden rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300" role="alert"></p>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#login');
+  const errEl = document.querySelector<HTMLElement>('#login-error');
+  const btn = document.querySelector<HTMLButtonElement>('[data-submit]');
+  const label = document.querySelector<HTMLElement>('[data-submit-label]');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form || !btn || !label || !errEl) return;
+    errEl.classList.add('hidden');
+    btn.disabled = true;
+    const prev = label.textContent;
+    label.textContent = 'กำลังตรวจสอบ…';
+
+    const fd = new FormData(form);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          username: String(fd.get('username') ?? ''),
+          password: String(fd.get('password') ?? ''),
+        }),
+      });
+      if (res.ok) {
+        window.location.href = '/admin';
+        return;
+      }
+      const body = await res.json().catch(() => null);
+      errEl.textContent = body?.error?.message ?? 'เข้าสู่ระบบไม่สำเร็จ';
+      errEl.classList.remove('hidden');
+    } catch {
+      errEl.textContent = 'เชื่อมต่อไม่ได้';
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      label.textContent = prev;
+    }
+  });
+</script>

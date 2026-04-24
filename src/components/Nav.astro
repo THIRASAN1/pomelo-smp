@@ -1,0 +1,53 @@
+---
+import Logo from './Logo.astro';
+
+const links = [
+  { href: '#features', label: 'ไฮไลท์' },
+  { href: '#join', label: 'วิธีเข้าเล่น' },
+  { href: '#apply', label: 'ขอเข้าเล่น' },
+  { href: '#rules', label: 'กติกา' },
+  { href: '#faq', label: 'คำถามที่พบบ่อย' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-ink-900/5 bg-cream-50/70 backdrop-blur-md">
+  <div class="container-app flex h-16 items-center justify-between">
+    <a href="/" class="flex items-center gap-2" aria-label="PomeloSMP home">
+      <Logo />
+    </a>
+
+    <nav aria-label="หลัก" class="hidden items-center gap-1 md:flex">
+      {
+        links.map((l) => (
+          <a
+            href={l.href}
+            class="rounded-full px-3 py-1.5 text-sm text-ink-700 transition hover:bg-cream-100 hover:text-ink-900"
+          >
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a
+        href="https://discord.gg/pomelosmp"
+        target="_blank"
+        rel="noopener"
+        class="btn-ghost hidden sm:inline-flex"
+        aria-label="เข้าร่วม Discord"
+      >
+        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+          <path d="M19.27 5.33A17.86 17.86 0 0 0 14.9 4l-.2.35a12.35 12.35 0 0 1 4.06 1.82 13.73 13.73 0 0 0-12.3 0A12.35 12.35 0 0 1 10.52 4.3L10.32 4a17.86 17.86 0 0 0-4.37 1.33A19.67 19.67 0 0 0 2.5 18.1 17.9 17.9 0 0 0 7.9 20l.8-1.12a11.5 11.5 0 0 1-1.8-.88c.15-.1.3-.22.44-.33a12.5 12.5 0 0 0 10.72 0c.15.11.3.22.44.33-.58.32-1.18.6-1.8.88L17.5 20a17.9 17.9 0 0 0 5.4-1.9 19.6 19.6 0 0 0-3.63-12.77ZM9.5 15.5c-1.04 0-1.9-.96-1.9-2.14 0-1.19.84-2.15 1.9-2.15s1.92.96 1.9 2.15c0 1.18-.85 2.14-1.9 2.14Zm5 0c-1.04 0-1.9-.96-1.9-2.14 0-1.19.84-2.15 1.9-2.15s1.92.96 1.9 2.15c0 1.18-.85 2.14-1.9 2.14Z" />
+        </svg>
+        Discord
+      </a>
+      <a href="#apply" class="btn-primary">
+        ขอเข้าเล่น
+        <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 10h12m0 0-4-4m4 4-4 4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</header>

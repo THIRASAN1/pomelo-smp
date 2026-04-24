@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF7ED"/>
+      <stop offset="100%" stop-color="#FFE4C8"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FED7AA"/>
+      <stop offset="50%" stop-color="#FB923C"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="260" cy="360" r="220" fill="url(#ball)"/>
+  <circle cx="200" cy="290" r="36" fill="#FFF7ED" fill-opacity="0.45"/>
+  <path d="M260 140 C 320 135, 380 100, 420 80 C 415 145, 380 195, 300 210" fill="#5E9448"/>
+  <g fill="#1B1410" font-family="Plus Jakarta Sans, sans-serif">
+    <text x="560" y="280" font-size="88" font-weight="800">PomeloSMP</text>
+    <text x="560" y="350" font-size="36" font-weight="500" fill="#6B5545">เซิร์ฟเวอร์มายคราฟสายชิลล์</text>
+    <text x="560" y="420" font-size="28" font-weight="600" fill="#EA580C">play.pomelosmp.net</text>
+  </g>
+</svg>

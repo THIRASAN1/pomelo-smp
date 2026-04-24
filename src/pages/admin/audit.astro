@@ -1,0 +1,166 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../server/lib/admin-auth';
+import { listAudit, type AuditAction } from '../../server/services/audit';
+
+export const prerender = false;
+
+try {
+  await requireAdmin(Astro);
+} catch {
+  return Astro.redirect('/admin/login');
+}
+
+const url = Astro.url;
+const actionParam = url.searchParams.get('action');
+const validActions: AuditAction[] = [
+  'admin.login',
+  'admin.login.failed',
+  'admin.logout',
+  'whitelist.submit',
+  'whitelist.approve',
+  'whitelist.reject',
+];
+const action = validActions.includes(actionParam as AuditAction)
+  ? (actionParam as AuditAction)
+  : undefined;
+const page = Math.max(1, Number(url.searchParams.get('page') ?? '1') || 1);
+
+const result = await listAudit({ action, page, pageSize: 50 });
+
+const fmtDate = (d: Date) =>
+  d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' });
+
+const actionStyles: Record<string, string> = {
+  'admin.login': 'badge-approved',
+  'admin.login.failed': 'badge-rejected',
+  'admin.logout': 'badge-pending',
+  'whitelist.submit': 'badge-pending',
+  'whitelist.approve': 'badge-approved',
+  'whitelist.reject': 'badge-rejected',
+};
+
+const tabs = [
+  { key: undefined, label: 'ทั้งหมด' },
+  { key: 'admin.login', label: 'Login' },
+  { key: 'admin.login.failed', label: 'Login fail' },
+  { key: 'whitelist.submit', label: 'สมัคร' },
+  { key: 'whitelist.approve', label: 'อนุมัติ' },
+  { key: 'whitelist.reject', label: 'ปฏิเสธ' },
+] as const;
+
+const tabHref = (k?: string) => `/admin/audit${k ? `?action=${k}` : ''}`;
+
+const pageHref = (p: number) => {
+  const params = new URLSearchParams(url.search);
+  params.set('page', String(p));
+  return `/admin/audit?${params.toString()}`;
+};
+
+function prettyMeta(raw: string | null): string {
+  if (!raw) return '';
+  try {
+    const o = JSON.parse(raw) as Record<string, unknown>;
+    return Object.entries(o)
+      .map(([k, v]) => `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
+      .join(' · ');
+  } catch {
+    return raw;
+  }
+}
+---
+
+<AdminLayout title="Audit log">
+  <div class="mx-auto max-w-6xl space-y-6 p-6 sm:p-10">
+    <header class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="font-display text-3xl font-bold text-white">Audit log</h1>
+        <p class="mt-1 text-sm text-ink-400">
+          รวม {result.total.toLocaleString('th-TH')} รายการ — แสดง 50 ต่อหน้า
+        </p>
+      </div>
+    </header>
+
+    <!-- Filter tabs -->
+    <div class="flex flex-wrap gap-2">
+      {
+        tabs.map((t) => {
+          const isActive = (t.key ?? undefined) === (action ?? undefined);
+          return (
+            <a
+              href={tabHref(t.key)}
+              class={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${isActive ? 'bg-pomelo-500 text-white' : 'bg-white/5 text-ink-300 hover:bg-white/10 hover:text-white'}`}
+            >
+              {t.label}
+            </a>
+          );
+        })
+      }
+    </div>
+
+    <!-- Table -->
+    <div class="admin-card overflow-hidden">
+      {
+        result.items.length === 0 ? (
+          <p class="p-12 text-center text-sm text-ink-400">ไม่พบรายการในช่วงนี้</p>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="border-b border-white/5 text-left text-xs uppercase tracking-wider text-ink-400">
+                <tr>
+                  <th class="px-5 py-3 font-medium">เมื่อ</th>
+                  <th class="px-5 py-3 font-medium">Actor</th>
+                  <th class="px-5 py-3 font-medium">Action</th>
+                  <th class="px-5 py-3 font-medium">Subject</th>
+                  <th class="px-5 py-3 font-medium">รายละเอียด</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                {result.items.map((row) => (
+                  <tr class="transition hover:bg-white/5 align-top">
+                    <td class="whitespace-nowrap px-5 py-3 text-ink-300">
+                      {fmtDate(row.createdAt)}
+                    </td>
+                    <td class="px-5 py-3 font-mono text-white">{row.actor}</td>
+                    <td class="px-5 py-3">
+                      <span class={`badge ${actionStyles[row.action] ?? 'badge-pending'}`}>{row.action}</span>
+                    </td>
+                    <td class="px-5 py-3 font-mono text-xs text-ink-300">
+                      {row.subjectId ? (
+                        row.subjectType === 'whitelist_application' ? (
+                          <a href={`/admin/applications/${row.subjectId}`} class="hover:text-pomelo-300">
+                            {row.subjectId.slice(0, 14)}…
+                          </a>
+                        ) : (
+                          <span>{row.subjectId}</span>
+                        )
+                      ) : (
+                        <span class="text-ink-500">—</span>
+                      )}
+                    </td>
+                    <td class="px-5 py-3 text-xs text-ink-400 break-all">
+                      {prettyMeta(row.metadata)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Pagination -->
+    {
+      result.totalPages > 1 && (
+        <nav class="flex items-center justify-between text-sm">
+          <p class="text-ink-400">หน้า {result.page} / {result.totalPages}</p>
+          <div class="flex gap-2">
+            {result.page > 1 && <a href={pageHref(result.page - 1)} class="admin-btn admin-btn-ghost">← ก่อนหน้า</a>}
+            {result.page < result.totalPages && <a href={pageHref(result.page + 1)} class="admin-btn admin-btn-ghost">ถัดไป →</a>}
+          </div>
+        </nav>
+      )
+    }
+  </div>
+</AdminLayout>

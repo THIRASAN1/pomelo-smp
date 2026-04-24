@@ -1,0 +1,88 @@
+---
+const serverIp = 'play.pomelosmp.net';
+---
+
+<section class="section pt-0">
+  <div class="container-app">
+    <div class="relative overflow-hidden rounded-3xl bg-ink-900 p-10 text-cream-50 sm:p-16">
+      <!-- decorative blobs -->
+      <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+        <div class="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-pomelo-500/30 blur-3xl"></div>
+        <div class="absolute -right-20 -bottom-20 h-80 w-80 rounded-full bg-flesh-500/20 blur-3xl"></div>
+      </div>
+
+      <div class="relative grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-pomelo-300">
+            พร้อมเข้าร่วมหรือยัง?
+          </p>
+          <h2 class="mt-3 text-balance font-display text-4xl font-bold leading-tight sm:text-5xl">
+            โลกส้มโอรอคุณอยู่<br />ที่ <span class="text-pomelo-400">play.pomelosmp.net</span>
+          </h2>
+          <p class="mt-4 max-w-xl text-cream-200/80">
+            เริ่มต้นซีซั่นใหม่ไปกับเพื่อน ๆ แล้ววันนี้ เราการันตีว่าคุณจะหาที่นั่งอุ่น ๆ เจอที่นี่
+          </p>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1.5 pl-4 backdrop-blur">
+              <span class="text-xs font-medium uppercase tracking-wider text-cream-200/60">IP</span>
+              <code class="font-mono text-sm">{serverIp}</code>
+              <button
+                type="button"
+                data-copy-ip={serverIp}
+                class="rounded-full bg-pomelo-500 px-3 py-1.5 text-xs font-medium text-ink-900 transition hover:bg-pomelo-400"
+              >
+                <span data-copy-label>คัดลอก</span>
+              </button>
+            </div>
+            <a
+              href="https://discord.gg/pomelosmp"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-cream-50 transition hover:bg-white/10"
+            >
+              เข้าร่วม Discord
+            </a>
+          </div>
+        </div>
+
+        <!-- pomelo illustration -->
+        <div class="relative mx-auto hidden aspect-square w-full max-w-sm lg:block">
+          <svg viewBox="0 0 200 200" class="h-full w-full animate-float" aria-hidden="true">
+            <defs>
+              <radialGradient id="p2" cx="35%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#FED7AA" />
+                <stop offset="50%" stop-color="#FB923C" />
+                <stop offset="100%" stop-color="#C2410C" />
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="110" r="78" fill="url(#p2)" />
+            <circle cx="75" cy="85" r="12" fill="#FFF7ED" fill-opacity="0.35" />
+            <path d="M100 30 C 120 28, 140 18, 150 10 C 148 30, 138 45, 118 52" fill="#5E9448" />
+            <path d="M100 30 C 95 20, 95 12, 100 6" stroke="#487235" stroke-width="3" fill="none" stroke-linecap="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('section [data-copy-ip]');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const ip = btn.getAttribute('data-copy-ip') ?? '';
+      const label = btn.querySelector<HTMLElement>('[data-copy-label]');
+      try {
+        await navigator.clipboard.writeText(ip);
+        if (label) {
+          const prev = label.textContent;
+          label.textContent = 'คัดลอกแล้ว!';
+          setTimeout(() => (label.textContent = prev), 1500);
+        }
+      } catch (_) {
+        if (label) label.textContent = 'คัดลอกไม่สำเร็จ';
+      }
+    });
+  });
+</script>

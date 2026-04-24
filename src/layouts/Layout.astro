@@ -1,0 +1,104 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'PomeloSMP — เซิร์ฟเวอร์มายคราฟสายชิลล์',
+  description = 'เซิร์ฟเวอร์ Minecraft SMP สไตล์มินิมอล อบอุ่นเหมือนส้มโอ สร้างสังคมเล็ก ๆ ที่เล่นสนุกและสร้างสรรค์ไปด้วยกัน',
+} = Astro.props;
+
+const siteBase = (Astro.site?.href ?? 'https://pomelosmp.net').replace(/\/+$/, '');
+const canonical = siteBase + Astro.url.pathname;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${siteBase}#org`,
+      name: 'PomeloSMP',
+      url: siteBase,
+      logo: `${siteBase}/favicon.svg`,
+      sameAs: ['https://discord.gg/pomelosmp'],
+    },
+    {
+      '@type': 'VideoGame',
+      '@id': `${siteBase}#game`,
+      name: 'PomeloSMP',
+      description,
+      url: siteBase,
+      gameServer: {
+        '@type': 'GameServer',
+        name: 'PomeloSMP',
+        url: siteBase,
+        serverStatus: 'OnlineEventAttendanceMode',
+        game: { '@type': 'VideoGame', name: 'Minecraft' },
+      },
+      applicationCategory: 'Game',
+      operatingSystem: 'Windows, macOS, Linux',
+      inLanguage: 'th',
+      publisher: { '@id': `${siteBase}#org` },
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#FFF7ED" />
+
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content="/og.svg" />
+    <meta property="og:locale" content="th_TH" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Structured data (nonce-allowed by CSP). is:inline tells Astro not to try bundling this — it's data, not code. -->
+    <script
+      is:inline
+      type="application/ld+json"
+      nonce={Astro.locals.cspNonce}
+      set:html={JSON.stringify(jsonLd)}
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-cream-50"
+    >
+      ข้ามไปยังเนื้อหา
+    </a>
+    <Nav />
+    <main id="main" class="relative">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

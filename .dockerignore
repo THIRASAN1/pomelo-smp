@@ -1,0 +1,46 @@
+# ─── dev artifacts ───────────────────────────────────────────
+node_modules
+dist
+.astro
+.cache
+coverage
+tmp-*.json
+tmp-*.txt
+
+# ─── VCS + IDE ───────────────────────────────────────────────
+.git
+.github
+.gitignore
+.gitattributes
+.idea
+.vscode
+.windsurf
+.devcontainer
+.cursor
+
+# ─── secrets + local state ───────────────────────────────────
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ─── release bundles ─────────────────────────────────────────
+pomelo-smp.zip
+*.tar.gz
+*.tgz
+
+# ─── logs ────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ─── misc ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+README.md
+LICENSE
